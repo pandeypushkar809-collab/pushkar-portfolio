@@ -1,130 +1,36 @@
-// ==========================================================
-// Footer year
-// ==========================================================
+const menuBtn = document.querySelector('.menu-btn');
+const nav = document.querySelector('.nav');
+menuBtn?.addEventListener('click', () => {
+  const open = nav.classList.toggle('open');
+  menuBtn.setAttribute('aria-expanded', String(open));
+});
+
+document.querySelectorAll('.nav a').forEach(link => link.addEventListener('click', () => nav?.classList.remove('open')));
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+document.addEventListener('pointermove', (event) => {
+  const glow = document.querySelector('.cursor-glow');
+  if (glow) {
+    glow.style.left = `${event.clientX}px`;
+    glow.style.top = `${event.clientY}px`;
+  }
+});
+
 document.getElementById('year').textContent = new Date().getFullYear();
 
-// ==========================================================
-// Mobile nav toggle
-// ==========================================================
-const navToggle = document.getElementById('navToggle');
-const nav = document.querySelector('.nav');
-navToggle.addEventListener('click', () => {
-  const isOpen = nav.classList.toggle('is-open');
-  navToggle.setAttribute('aria-expanded', isOpen);
-});
-document.querySelectorAll('.nav__links a').forEach(link => {
-  link.addEventListener('click', () => {
-    nav.classList.remove('is-open');
-    navToggle.setAttribute('aria-expanded', 'false');
-  });
-});
-
-// ==========================================================
-// Terminal typing animation (hero)
-// ==========================================================
-const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-const terminalScript = [
-  { type: 'cmd', text: 'whoami' },
-  { type: 'out', text: 'Pushkar-Pandey' },
-  { type: 'cmd', text: 'cat role.txt' },
-  { type: 'out', text: 'DevOps Engineer,DevSecOps Engineer,Cloud Engineer},
-  { type: 'cmd', text: 'kubectl get status' },
-  { type: 'out', text: 'all systems operational ✔' },
-];
-
-function renderTerminalInstant(body){
-  terminalScript.forEach(line => {
-    const el = document.createElement('div');
-    el.className = 'terminal__line';
-    if(line.type === 'cmd'){
-      el.innerHTML = `<span class="terminal__prompt">$</span> ${line.text}`;
-    } else {
-      el.innerHTML = `<span class="terminal__output">${line.text}</span>`;
-    }
-    body.appendChild(el);
-  });
-}
-
-async function typeTerminal(){
-  const body = document.getElementById('terminalBody');
-  if(!body) return;
-
-  if(reduceMotion){
-    renderTerminalInstant(body);
-    return;
-  }
-
-  for(const line of terminalScript){
-    const el = document.createElement('div');
-    el.className = 'terminal__line';
-    body.appendChild(el);
-
-    if(line.type === 'cmd'){
-      el.innerHTML = `<span class="terminal__prompt">$</span> <span class="typed"></span><span class="terminal__caret"></span>`;
-      const typedSpan = el.querySelector('.typed');
-      const caret = el.querySelector('.terminal__caret');
-      for(let i = 0; i < line.text.length; i++){
-        typedSpan.textContent += line.text[i];
-        await sleep(28);
-      }
-      await sleep(280);
-      caret.remove();
-    } else {
-      el.innerHTML = `<span class="terminal__output"></span>`;
-      const out = el.querySelector('.terminal__output');
-      out.textContent = line.text;
-      out.style.opacity = 0;
-      await sleep(80);
-      out.style.transition = 'opacity 0.3s ease';
-      out.style.opacity = 1;
-      await sleep(350);
-    }
-  }
-}
-
-function sleep(ms){ return new Promise(res => setTimeout(res, ms)); }
-
-typeTerminal();
-
-// ==========================================================
-// Pipeline scroll-spy
-// ==========================================================
-const stages = document.querySelectorAll('.pipeline__stage');
-const sections = Array.from(stages).map(s => document.getElementById(s.dataset.stage)).filter(Boolean);
-
-function updatePipeline(){
-  const scrollPos = window.scrollY + 160;
-  let activeIndex = 0;
-  sections.forEach((sec, i) => {
-    if(sec.offsetTop <= scrollPos) activeIndex = i;
-  });
-  stages.forEach((s, i) => s.classList.toggle('is-active', i === activeIndex));
-}
-
-window.addEventListener('scroll', updatePipeline, { passive: true });
-window.addEventListener('load', updatePipeline);
-
-// ==========================================================
-// Reveal-on-scroll for cards
-// ==========================================================
-if(!reduceMotion && 'IntersectionObserver' in window){
-  const revealTargets = document.querySelectorAll('.tool-card, .project-card, .timeline__item, .cert-badge, .contact-link');
-  revealTargets.forEach(el => {
-    el.style.opacity = 0;
-    el.style.transform = 'translateY(14px)';
-    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-  });
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if(entry.isIntersecting){
-        entry.target.style.opacity = 1;
-        entry.target.style.transform = 'translateY(0)';
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.15 });
-
-  revealTargets.forEach(el => observer.observe(el));
-}
+// Smooth parallax for the hero visual on larger screens.
+const visual = document.querySelector('.hero-visual');
+window.addEventListener('scroll', () => {
+  if (!visual || window.innerWidth < 900) return;
+  const y = Math.min(window.scrollY * 0.06, 28);
+  visual.style.transform = `translateY(${y}px)`;
+}, { passive: true });
